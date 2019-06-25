@@ -57,6 +57,7 @@ func init() {
 // StoreConfig specifies config for a ChunkStore
 type StoreConfig struct {
 	ChunkCacheConfig       cache.Config `yaml:"chunk_cache_config,omitempty"`
+	ChunkCacheStubs        bool         // don't write the full chunk to cache, just a stub entry
 	WriteDedupeCacheConfig cache.Config `yaml:"write_dedupe_cache_config,omitempty"`
 
 	MinChunkAge           time.Duration `yaml:"min_chunk_age,omitempty"`
@@ -69,6 +70,7 @@ type StoreConfig struct {
 // RegisterFlags adds the flags required to config this to the given FlagSet
 func (cfg *StoreConfig) RegisterFlags(f *flag.FlagSet) {
 	cfg.ChunkCacheConfig.RegisterFlagsWithPrefix("", "Cache config for chunks. ", f)
+	f.BoolVar(&cfg.ChunkCacheStubs, "store.chunk-cache-stubs", false, "If true, don't write the full chunk to cache, just a stub entry.")
 	cfg.WriteDedupeCacheConfig.RegisterFlagsWithPrefix("store.index-cache-write.", "Cache config for index entry writing. ", f)
 
 	f.DurationVar(&cfg.MinChunkAge, "store.min-chunk-age", 0, "Minimum time between chunk update and being saved to the store.")
@@ -92,7 +94,7 @@ type store struct {
 }
 
 func newStore(cfg StoreConfig, schema Schema, index IndexClient, chunks ObjectClient, limits *validation.Overrides) (Store, error) {
-	fetcher, err := NewChunkFetcher(cfg.ChunkCacheConfig, chunks)
+	fetcher, err := NewChunkFetcher(cfg.ChunkCacheConfig, cfg.ChunkCacheStubs, chunks)
 	if err != nil {
 		return nil, err
 	}
