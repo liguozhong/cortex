@@ -72,7 +72,7 @@ func (s *memorySeries) add(v model.SamplePair) error {
 		v.Value.Equal(s.lastSampleValue) {
 		return nil
 	}
-	if v.Timestamp == s.lastTime {
+	if s.lastSampleValueSet && v.Timestamp == s.lastTime {
 		return &memorySeriesError{
 			message:   fmt.Sprintf("sample with repeated timestamp but different value for series %v; last value: %v, incoming value: %v", s.metric, s.lastSampleValue, v.Value),
 			errorType: "new-value-for-timestamp",
