@@ -165,6 +165,16 @@ func TestIngesterTransfer(t *testing.T) {
 			},
 		},
 	}, response)
+
+	// Check we can send the same sample again to the new ingester without complaint
+	_, err = ing2.Push(ctx, client.ToWriteRequest([]model.Sample{
+		{
+			Metric:    m,
+			Timestamp: ts,
+			Value:     val,
+		},
+	}, client.API))
+	require.NoError(t, err)
 }
 
 func TestIngesterBadTransfer(t *testing.T) {
